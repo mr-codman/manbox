@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>بازی حدس عدد</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            font-family: Arial, sans-serif;
+            background-color: #333;
+            color: white;
+        }
+
+        #container {
+            background-color: rgba(0, 0, 0, 0.5);
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+        }
+
+        #message {
+            font-size: 1.5rem;
+            margin: 0 0 20px;
+        }
+
+        #startButton, #nextButton {
+            padding: 8px 15px;
+            background-color: #007bff;
+            border: none;
+            color: white;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        #startButton:hover, #nextButton:hover {
+            background-color: #0056b3;
+        }
+        
+        #levelSelector {
+            font-size: 1.2rem;
+            margin-top: 10px;
+        }
+
+        #numberIcon {
+            font-size: 3rem;
+            margin-top: 10px;
+        }
+
+        #coinIcon {
+            font-size: 2rem;
+            margin-top: 10px;
+        }
+
+        #hintIcon {
+            font-size: 2rem;
+            margin-top: 10px;
+            cursor: pointer;
+        }
+
+        .yellowBox {
+            background-color: yellow;
+            border: 2px solid black;
+            padding: 20px;
+            border-radius: 10px;
+            margin-top: 20px;
+        }
+
+        #coinImage, #hintImage {
+            display: inline-block;
+            vertical-align: middle;
+            width: 30px;
+            height: 30px;
+            margin-right: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div id="container">
+        <h1>بازی حدس عدد</h1>
+        <p>لطفاً سطح بازی را انتخاب کنید:</p>
+        <select id="levelSelector">
+            <option value="0">مبتدی (50 کلمه - 150 ثانیه)</option>
+            <option value="1">متوسط (100 عدد - 210 ثانیه)</option>
+            <option value="2">سخت (150 عدد - 320 ثانیه)</option>
+        </select>
+        <button id="startButton" onclick="startGame()">شروع بازی</button>
+    </div>
+    <div id="gameContainer" style="display: none;">
+        <h1>بازی حدس عدد</h1>
+        <p id="message">تلاش کنید عدد را حدس بزنید</p>
+        <div id="numberIcon"></div>
+        <input type="number" id="inputBox" min="1" max="100" onkeydown="if (event.keyCode === 13) checkGuess()">
+        <button id="guessButton" onclick="checkGuess()">بررسی</button>
+        <div id="timer">زمان باقی‌مانده: <span id="timeLeft"></span> ثانیه</div>
+        <div id="score">امتیاز: <span id="userScore">0</span></div>
+        <div id="coinIcon">
+            <img src="coin.png" alt="سکه" id="coinImage">
+            <span id="userCoins">750</span>
+        </div>
+        <div id="hint">
+            <div class="yellowBox" id="hintBox" style="display: none;">
+                <p>آیا میخواهید از راهنمایی استفاده کنید؟</p>
+                <button id="hintButton" onclick="useHint()">
+                    <img src="hint.png" alt="راهنما" id="hintImage">
+                    استفاده از راهنما (210 سکه)
+                </button>
+            </div>
+        </div>
+        <div id="hintIcon" onclick="showHint()">?</div>
+    </div>
+    
+    <script>
+        let secretNumber;
+        let maxAttempts;
+        let timer;
+        let timeLeft;
+        let userScore;
+        let userCoins;
+        let hintUsed;
+
+        const levels = [
+            { maxAttempts: 50, time: 150 },
+            { maxAttempts: 100, time: 210 },
+            { maxAttempts: 150, time: 320 }
+        ];
+
+        function generateRandomNumber() {
+            return Math.floor(Math.random() * 100) + 1;
+        }
+
+        function startGame() {
+            const selectedLevel = parseInt(document.getElementById("levelSelector").value);
+            secretNumber = generateRandomNumber();
+            maxAttempts = levels[selectedLevel].maxAttempts;
+            timeLeft = levels[selectedLevel].time;
+            userScore = 0;
+            userCoins = 750;
+            hintUsed = false;
+            updateUI();
+
+            clearInterval(timer);
+            timer = setInterval(updateTime, 1000);
+
+            document.getElementById("container").style.display = "none";
+            document.getElementById("gameContainer").style.display = "block";
+            document.getElementById("inputBox").disabled = false;
+            document.getElementById("guessButton").disabled = false;
+        }
+
+        function checkGuess() {
+            const guess = parseInt(document.getElementById("inputBox").value);
+            if (guess === secretNumber) {
+                userScore += (maxAttempts - attempts + 1) * 10;
+                document.getElementById("message").textContent = `تبریک! شما عدد ${secretNumber} را با ${attempts} تلاش حدس زدید.`;
+                document.getElementById("inputBox").disabled = true;
+                document.getElementById("guessButton").disabled = true;
+            } else if (guess < secretNumber) {
+                document.getElementById("message").textContent = "عدد بزرگ‌تری را حدس بزنید.";
+            } else {
+                document.getElementById("message").textContent = "عدد کوچک‌تری را حدس بزنید.";
+            }
+
+            updateUI();
+
+            if (attempts >= maxAttempts) {
+                document.getElementById("message").textContent = `شما باختید! عدد زاحر شد. امتیاز شما: ${userScore}`;
+                clearInterval(timer);
+                document.getElementById("inputBox").disabled = true;
+                document.getElementById("guessButton").disabled = true;
+            }
+        }
+
+        function updateTime() {
+            if (timeLeft > 0) {
+                timeLeft--;
+            } else {
+                clearInterval(timer);
+                document.getElementById("message").textContent = `زمان تمام شد! امتیاز شما: ${userScore}`;
+                document.getElementById("inputBox").disabled = true;
+                document.getElementById("guessButton").disabled = true;
+            }
+            updateUI();
+        }
+
+        function updateUI() {
+            document.getElementById("timeLeft").textContent = timeLeft;
+            document.getElementById("userScore").textContent = userScore;
+            document.getElementById("userCoins").textContent = userCoins;
+            if (hintUsed) {
+                document.getElementById("hintBox").style.display = "none";
+            }
+        }
+
+        function showHint() {
+            if (!hintUsed) {
+                document.getElementById("hintBox").style.display = "block";
+            }
+        }
+
+        function useHint() {
+            if (userCoins >= 210) {
+                const hint = `عدد زیر را حدس بزنید: ${secretNumber}`;
+                document.getElementById("hintBox").innerHTML = `<p>${hint}</p>`;
+                document.getElementById("hintButton").textContent = "راهنمایی استفاده شد";
+                userCoins -= 210;
+                hintUsed = true;
+                updateUI();
+            }
+        }
+    </script>
+</body>
+</html>

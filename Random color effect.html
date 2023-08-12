@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Random color effect</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-family: Arial, sans-serif;
+            transition: background-color 0.5s;
+        }
+
+        h1 {
+            font-size: 3rem;
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    
+    <script>
+        const getRandomColor = () => {
+            const letters = '0123456789ABCDEF';
+            let color = '#';
+            for (let i = 0; i < 6; i++) {
+                color += letters[Math.floor(Math.random() * 16)];
+            }
+            return color;
+        };
+
+        const changeBackgroundColor = () => {
+            const newColor = getRandomColor();
+            document.body.style.backgroundColor = newColor;
+        };
+
+        // تغییر رنگ پس‌زمینه هر 3 ثانیه
+        setInterval(changeBackgroundColor, 500);
+    </script>
+</body>
+</html>
